@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "ignoreDeprecations": "6.0",
+        "target": "ES2022",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "jsx": "react-jsx",
+        "baseUrl": ".",
+        "paths": {
+            "@apidex/core/*": ["src/core/*"],
+            "@apidex/bundles/*": ["src/bundles/*"]
+        },
+        "strict": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "allowImportingTsExtensions": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true
+    },
+    "include": ["src"]
+}

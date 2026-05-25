@@ -1,0 +1,5 @@
+export { ProjectsList } from "./components/ProjectsList"
+export { ProjectDetail } from "./components/ProjectDetail"
+export { ProjectForm } from "./components/ProjectForm"
+export { ServiceDetail } from "./components/ServiceDetail"
+export { ServiceForm } from "./components/ServiceForm"
