@@ -10,7 +10,6 @@ import {
     Paper,
     Select,
     Stack,
-    TextField,
     Typography,
 } from "@mui/material"
 import { useMemo, useState } from "react"
@@ -28,13 +27,10 @@ import { getDocumentationProjects } from "@apidex/core/documentation/data/reposi
 import { DocumentationProjectSummary } from "@apidex/core/documentation/data/models"
 
 const DEFAULT_MODELS = ["OpenAi", "Local"]
-const DEFAULT_CONTEXT_MODES = ["Compact", "Expanded", "FullDebug"]
+const DEFAULT_CONTEXT_MODES = ["Compact", "Expanded", "Comprehensive"]
 const DEFAULT_RAG_SETTINGS: RagSettingsResponse = {
     activeModel: "OpenAi",
     contextMode: "Compact",
-    topKChunks: 5,
-    topKMinimum: 1,
-    topKMaximum: 20,
     availableModels: DEFAULT_MODELS,
     availableContextModes: DEFAULT_CONTEXT_MODES,
     modelDescriptors: [],
@@ -66,7 +62,7 @@ export default function Settings() {
     return (
         <SettingsContent
             key={`${settingsQuery.data?.activeModel ?? "default"}-${projectsQuery.data?.length ?? 0}-${initialError ?? "ok"}`}
-            settings={settingsQuery.data ?? DEFAULT_RAG_SETTINGS}
+            settings={normalizeSettings(settingsQuery.data)}
             projects={projectsQuery.data ?? []}
             initialError={initialError}
         />
@@ -88,7 +84,6 @@ function SettingsContent({
     const [indexActionLoading, setIndexActionLoading] = useState(false)
     const [activeModel, setActiveModel] = useState(settings.activeModel)
     const [contextMode, setContextMode] = useState(settings.contextMode)
-    const [topKChunks, setTopKChunks] = useState(settings.topKChunks)
     const [selectedProjectId, setSelectedProjectId] = useState("")
     const [message, setMessage] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(initialError)
@@ -117,7 +112,7 @@ function SettingsContent({
         setError(null)
         setMessage(null)
         try {
-            await aiRepository.updateRagSettings(activeModel, contextMode, topKChunks)
+            await aiRepository.updateRagSettings(activeModel, contextMode)
             setMessage("Settings saved.")
         } catch (err) {
             console.error(err)
@@ -213,15 +208,6 @@ function SettingsContent({
                             </Select>
                         </FormControl>
 
-                        <TextField
-                            type="number"
-                            label="Top K Chunks"
-                            value={topKChunks}
-                            slotProps={{ htmlInput: { min: settings.topKMinimum, max: settings.topKMaximum } }}
-                            onChange={(event) => setTopKChunks(clamp(Number(event.target.value), settings.topKMinimum, settings.topKMaximum))}
-                            fullWidth
-                        />
-
                         <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                             <Button variant="contained" onClick={handleSave} disabled={saving}>
                                 {saving ? <CircularProgress size={24} /> : "Save Settings"}
@@ -310,7 +296,17 @@ function MetricCard({ label, value, loading }: { label: string; value?: number; 
     )
 }
 
-function getEmbeddingModelLabel(model: string, descriptors: RagModelDescriptor[]) {
+function normalizeSettings(settings?: RagSettingsResponse): RagSettingsResponse {
+    return {
+        activeModel: settings?.activeModel ?? DEFAULT_RAG_SETTINGS.activeModel,
+        contextMode: settings?.contextMode ?? DEFAULT_RAG_SETTINGS.contextMode,
+        availableModels: settings?.availableModels ?? DEFAULT_RAG_SETTINGS.availableModels,
+        availableContextModes: settings?.availableContextModes ?? DEFAULT_RAG_SETTINGS.availableContextModes,
+        modelDescriptors: settings?.modelDescriptors ?? DEFAULT_RAG_SETTINGS.modelDescriptors,
+    }
+}
+
+function getEmbeddingModelLabel(model: string, descriptors: RagModelDescriptor[] = []) {
     const descriptor = descriptors.find(item => item.type === model)
     if (!descriptor) return model
 
@@ -322,13 +318,8 @@ function getContextModeLabel(mode: string) {
     const labels: Record<string, string> = {
         Compact: "Compact",
         Expanded: "Expanded",
-        FullDebug: "Full Debug",
+        Comprehensive: "Comprehensive",
     }
 
     return labels[mode] ?? mode
-}
-
-function clamp(value: number, min: number, max: number) {
-    if (Number.isNaN(value)) return min
-    return Math.min(Math.max(value, min), max)
 }

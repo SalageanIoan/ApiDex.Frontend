@@ -8,7 +8,6 @@ import {
     ListItemIcon,
     ListItemText,
     Typography,
-    Divider,
 } from "@mui/material"
 import DescriptionIcon from "@mui/icons-material/Description"
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"
@@ -36,45 +35,6 @@ export function Layout() {
                     },
                 }}
             >
-                <Box
-                    sx={{
-                        p: 2.5,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1.5,
-                        cursor: "pointer",
-                    }}
-                    onClick={() => navigate("/projects")}
-                >
-                    <Box>
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                fontWeight: 700,
-                                background:
-                                    "linear-gradient(135deg, #58A6FF 0%, #3FB950 100%)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                                lineHeight: 1.2,
-                            }}
-                        >
-                            ApiDex
-                        </Typography>
-                        <Typography
-                            variant="caption"
-                            sx={{
-                                color: "text.secondary",
-                                fontSize: "0.6rem",
-                                letterSpacing: "0.05em",
-                            }}
-                        >
-                            Documentation Hub
-                        </Typography>
-                    </Box>
-                </Box>
-
-                <Divider />
-
                 <List sx={{ px: 1, pt: 1 }}>
                     <ListItem disablePadding>
                         <ListItemButton

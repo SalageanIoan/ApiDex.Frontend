@@ -1,4 +1,4 @@
-import { getApiDexService } from "@apidex/core/services"
+import { getAssistantService, getRagService } from "@apidex/core/services"
 
 export type AskDocumentationRequest = {
     question: string
@@ -13,9 +13,6 @@ export type AskDocumentationResponse = {
 export type RagSettingsResponse = {
     activeModel: string
     contextMode: string
-    topKChunks: number
-    topKMinimum: number
-    topKMaximum: number
     availableModels: string[]
     availableContextModes: string[]
     modelDescriptors: RagModelDescriptor[]
@@ -35,29 +32,29 @@ export type ProjectIndexStatus = {
 
 export const aiRepository = {
     indexProject: async (projectId: string): Promise<void> => {
-        await getApiDexService().post(`/IndexProject/${projectId}`)
+        await getRagService().post(`/IndexProject/${projectId}`)
     },
 
     clearProjectIndex: async (projectId: string): Promise<void> => {
-        await getApiDexService().delete(`/ProjectIndex/${projectId}`)
+        await getRagService().delete(`/ProjectIndex/${projectId}`)
     },
 
     getProjectIndexStatus: async (projectId: string): Promise<ProjectIndexStatus> => {
-        const response = await getApiDexService().get<ProjectIndexStatus>(`/ProjectIndex/${projectId}`)
+        const response = await getRagService().get<ProjectIndexStatus>(`/ProjectIndex/${projectId}`)
         return response.data
     },
 
     ask: async (request: AskDocumentationRequest): Promise<AskDocumentationResponse> => {
-        const response = await getApiDexService().post<AskDocumentationResponse>("/Ask", request)
+        const response = await getAssistantService().post<AskDocumentationResponse>("/Ask", request)
         return response.data
     },
 
     getRagSettings: async (): Promise<RagSettingsResponse> => {
-        const response = await getApiDexService().get<RagSettingsResponse>("/Settings/Rag")
+        const response = await getRagService().get<RagSettingsResponse>("/Settings")
         return response.data
     },
 
-    updateRagSettings: async (activeModel: string, contextMode: string, topKChunks: number): Promise<void> => {
-        await getApiDexService().put("/Settings/Rag", { activeModel, contextMode, topKChunks })
+    updateRagSettings: async (activeModel: string, contextMode: string): Promise<void> => {
+        await getRagService().put("/Settings", { activeModel, contextMode })
     }
 }
