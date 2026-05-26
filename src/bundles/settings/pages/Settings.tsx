@@ -26,14 +26,34 @@ import {
 import { getDocumentationProjects } from "@apidex/core/documentation/data/repositories/documentationProjectRepository"
 import { DocumentationProjectSummary } from "@apidex/core/documentation/data/models"
 
-const DEFAULT_MODELS = ["OpenAi", "Local"]
+const DEFAULT_MODELS = ["OpenAi", "Local", "LocalBgeBase"]
 const DEFAULT_CONTEXT_MODES = ["Compact", "Expanded", "Comprehensive"]
+const DEFAULT_MODEL_DESCRIPTORS: RagModelDescriptor[] = [
+    {
+        type: "OpenAi",
+        key: "openai-text-embedding-3-small",
+        dimensions: 1536,
+        offline: false,
+    },
+    {
+        type: "Local",
+        key: "local-bge-micro-v2",
+        dimensions: 384,
+        offline: true,
+    },
+    {
+        type: "LocalBgeBase",
+        key: "local-bge-base-en-v1.5",
+        dimensions: 768,
+        offline: true,
+    },
+]
 const DEFAULT_RAG_SETTINGS: RagSettingsResponse = {
     activeModel: "OpenAi",
     contextMode: "Compact",
     availableModels: DEFAULT_MODELS,
     availableContextModes: DEFAULT_CONTEXT_MODES,
-    modelDescriptors: [],
+    modelDescriptors: DEFAULT_MODEL_DESCRIPTORS,
 }
 
 export default function Settings() {
@@ -297,21 +317,49 @@ function MetricCard({ label, value, loading }: { label: string; value?: number; 
 }
 
 function normalizeSettings(settings?: RagSettingsResponse): RagSettingsResponse {
+    const availableModels = unique([
+        ...(settings?.availableModels ?? []),
+        ...DEFAULT_RAG_SETTINGS.availableModels,
+    ])
+
     return {
         activeModel: settings?.activeModel ?? DEFAULT_RAG_SETTINGS.activeModel,
         contextMode: settings?.contextMode ?? DEFAULT_RAG_SETTINGS.contextMode,
-        availableModels: settings?.availableModels ?? DEFAULT_RAG_SETTINGS.availableModels,
+        availableModels,
         availableContextModes: settings?.availableContextModes ?? DEFAULT_RAG_SETTINGS.availableContextModes,
-        modelDescriptors: settings?.modelDescriptors ?? DEFAULT_RAG_SETTINGS.modelDescriptors,
+        modelDescriptors: mergeModelDescriptors(settings?.modelDescriptors),
     }
 }
 
 function getEmbeddingModelLabel(model: string, descriptors: RagModelDescriptor[] = []) {
     const descriptor = descriptors.find(item => item.type === model)
-    if (!descriptor) return model
+    if (!descriptor) return getEmbeddingModelName(model)
 
     const location = descriptor.offline ? "local" : "remote"
-    return `${model} (${descriptor.key}, ${descriptor.dimensions} dimensions, ${location})`
+    return `${getEmbeddingModelName(model)} (${descriptor.key}, ${descriptor.dimensions} dimensions, ${location})`
+}
+
+function getEmbeddingModelName(model: string) {
+    const labels: Record<string, string> = {
+        OpenAi: "OpenAI",
+        Local: "Local BGE Micro",
+        LocalBgeBase: "Local BGE Base",
+    }
+
+    return labels[model] ?? model
+}
+
+function mergeModelDescriptors(descriptors?: RagModelDescriptor[]) {
+    const byType = new Map(DEFAULT_MODEL_DESCRIPTORS.map(descriptor => [descriptor.type, descriptor]))
+    for (const descriptor of descriptors ?? []) {
+        byType.set(descriptor.type, descriptor)
+    }
+
+    return Array.from(byType.values())
+}
+
+function unique(values: string[]) {
+    return Array.from(new Set(values))
 }
 
 function getContextModeLabel(mode: string) {

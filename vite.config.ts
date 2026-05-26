@@ -15,6 +15,8 @@ export default defineConfig({
         open: true,
         proxy: {
             "/Documentation": "http://localhost:5276",
+            "/Rag": "http://localhost:5276",
+            "/Assistant": "http://localhost:5276",
         },
     },
     preview: {
